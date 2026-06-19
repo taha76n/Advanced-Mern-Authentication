@@ -53,6 +53,8 @@ api.interceptors.response.use(
 
       try {
         await api.post("api/v1/refresh");
+        const { data } = await api.get("/api/v1/csrfToken");
+        setCsrfToken(data.csrfToken);
         processQueue(null, null);
         return api(originalRequest);
       } catch (error) {

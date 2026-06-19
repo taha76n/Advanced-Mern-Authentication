@@ -116,7 +116,7 @@ export const register = TryCatch(async (req, res) => {
   const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
   const verifyUrl = `${baseUrl.replace(/\/+$/, "")}/verify/${encodeURIComponent(verifyToken)}`;
-  console.log(verifyUrl);
+  // console.log(verifyUrl);
 
   const subject = "Verify Your Email for Account Verification";
   const html = getVerifyEmailHtml({ email, token: verifyToken });
@@ -260,12 +260,6 @@ export const verifyOtp = TryCatch(async (req, res) => {
 
   const storedOtp = JSON.parse(storedOtpString);
 
-  console.log("otp", otp);
-  console.log("storedOtp", storedOtp);
-  console.log("types:", typeof Number(otp), typeof storedOtp)
-console.log("strict equal:", Number(otp) === storedOtp)
-console.log("otp length:", otp.length, "stored length:", String(storedOtp).length)
-
   if (String(otp) !== String(storedOtp)) {
     return res.status(400).json({ message: "Invalid Otp" });
   }
@@ -295,9 +289,9 @@ export const refreshToken = TryCatch(async (req, res) => {
     return res.status(401).json({ message: "Invalid Refresh Token" });
   }
 
-  revokeRefreshToken(decode.id);
-  generateAccessToken(decode.id, res);
-  generateRefreshToken(decode.id, res);
+  await revokeRefreshToken(decode.id);
+  await generateAccessToken(decode.id, res);
+  await generateRefreshToken(decode.id, res);
 
   return res.status(200).json({ message: "Token Refreshed" });
 });
