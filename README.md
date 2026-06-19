@@ -1,4 +1,4 @@
-# MERN Authentication — 2FA & Security
+# Advanced MERN Authentication — 2FA & Security
 
 A production-grade authentication service built on the MERN stack, implementing modern backend security standards from the ground up. Every security feature is purpose-built and tested — not a boilerplate copy-paste.
 
