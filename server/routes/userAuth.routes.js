@@ -6,14 +6,14 @@ import { doubleCsrfProtection } from "../config/csrf.js";
 
 const authRouter = express.Router();
 
-authRouter.post("/register", register);
+authRouter.post("/register", doubleCsrfProtection, register);
 authRouter.post("/verify/:token", verifyUser);    //req.params
 authRouter.post("/login", login);
 authRouter.post("/verify", verifyOtp);
-authRouter.get("/user",isAuth, doubleCsrfProtection, myProfile);
-authRouter.post("/refresh", doubleCsrfProtection, refreshToken);
-authRouter.get("/logout",isAuth, doubleCsrfProtection, logout);
-authRouter.get("/myProfile",isAuth, doubleCsrfProtection, myProfile);
+authRouter.get("/user", isAuth, myProfile);
+authRouter.post("/refresh", refreshToken);
+authRouter.get("/logout", isAuth, logout);
+authRouter.get("/myProfile", isAuth, myProfile);
 authRouter.get("/csrfToken", csrfController );
 
 // Protected Routes showcasing Role Based Access Control

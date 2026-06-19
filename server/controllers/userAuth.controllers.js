@@ -5,10 +5,11 @@ import User from "../models/users.models.js";
 import redisClient from "../config/redis.js";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-// import sendMail from "../config/nodemailer.js";
-// import { getOtpHtml, getVerifyEmailHtml } from "../config/html.js";
+import sendMail from "../config/nodemailer.js";
+import { getOtpHtml, getVerifyEmailHtml } from "../config/html.js";
 import {
   generateAccessToken,
+  generateRefreshToken,
   generateToken,
   revokeRefreshToken,
   verifyRefreshToken,
@@ -94,8 +95,6 @@ export const register = TryCatch(async (req, res) => {
 
   const existingUser = await User.findOne({ email });
 
-  console.log(existingUser);
-
   if (existingUser) {
     return res.status(400).json({ message: "User already exists" });
   }
@@ -112,8 +111,6 @@ export const register = TryCatch(async (req, res) => {
     password: hashedPassword,
   });
 
-  console.log(storeData);
-
   await redisClient.set(verifyKey, storeData, { EX: 300 });
 
   const baseUrl = process.env.FRONTEND_URL || "http://localhost:5173";
@@ -121,9 +118,9 @@ export const register = TryCatch(async (req, res) => {
   const verifyUrl = `${baseUrl.replace(/\/+$/, "")}/verify/${encodeURIComponent(verifyToken)}`;
   console.log(verifyUrl);
 
-  // const subject = "Verify Your Email for Account Verification";
-  // const html = getVerifyEmailHtml({ email, token: verifyToken });
-  // await sendMail({ email, subject, html });
+  const subject = "Verify Your Email for Account Verification";
+  const html = getVerifyEmailHtml({ email, token: verifyToken });
+  await sendMail({ email, subject, html });
 
   await redisClient.set(rateLimitKey, "true", { EX: 60 });
 
@@ -229,16 +226,15 @@ export const login = TryCatch(async (req, res) => {
   }
 
   const otp = crypto.randomInt(100000, 1000000).toString();
-  console.log(otp);
 
   const otpKey = `otp:${email}`;
   await redisClient.set(otpKey, JSON.stringify(otp), { EX: 300 });
 
-  // const subject = "otp for verification";
+  const subject = "otp for verification";
 
-  // const html = getOtpHtml({ email, otp });
+  const html = getOtpHtml({ email, otp });
 
-  // await sendMail({ email, subject, html });
+  await sendMail({ email, subject, html });
 
   await redisClient.set(rateLimiterKey, "true", { EX: 60 });
 
@@ -292,13 +288,16 @@ export const refreshToken = TryCatch(async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
 
   if (!refreshToken) {
-    return res.status(400).json({ message: "Invalid Refresh Token" });
+    return res.status(401).json({ message: "Invalid Refresh Token" });
   }
   const decode = await verifyRefreshToken(refreshToken);
   if (!decode) {
     return res.status(401).json({ message: "Invalid Refresh Token" });
   }
+
+  revokeRefreshToken(decode.id);
   generateAccessToken(decode.id, res);
+  generateRefreshToken(decode.id, res);
 
   return res.status(200).json({ message: "Token Refreshed" });
 });
@@ -317,6 +316,6 @@ export const logout = TryCatch(async (req, res) => {
 });
 
 export const csrfController = TryCatch(async (req, res) => {
-  const token = generateCsrfToken(res, req);  // ← res first, req second
+  const token = generateCsrfToken(res, req);  // res first, req second
   return res.json({ csrfToken: token });
 });

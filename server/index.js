@@ -1,8 +1,4 @@
 import "dotenv/config";
-console.log("CSRF SECRET:", process.env.CSRF_SECRET)
-console.log("NODE_ENV:", process.env.NODE_ENV)
-console.log("CSRF_SECRET type:", typeof process.env.CSRF_SECRET)
-console.log("CSRF_SECRET length:", process.env.CSRF_SECRET?.length)
 import express from "express";
 import connectDb from "./config/mongodb.js";
 import authRouter from "./routes/userAuth.routes.js";
@@ -10,7 +6,6 @@ import redisClient from "./config/redis.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
-
 
 const app = express();
 app.use(express.json());
@@ -43,7 +38,6 @@ const connectRedis = async () => {
 };
 connectRedis();
 connectDb();
-
 
 app.use("/api/v1", authRouter);
 

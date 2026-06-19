@@ -31,7 +31,9 @@ export const AppProvider = ({children}) => {
         console.log("Token received:", data.csrfToken)
         setInterceptorToken(data.csrfToken)
       } catch (error) {
-        console.log(error)
+        if (error.response?.status !== 401) {
+          console.log(error)
+        }
       }
     }
 
